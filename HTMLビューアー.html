@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML プレビュー＆ダウンローダー</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #dddfe2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0d6efd;
+        }
+
+        main {
+            display: flex;
+            height: calc(100vh - 80px); /* ヘッダーの高さを引く */
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .editor-container, .preview-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        h2 {
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            margin: 0;
+            background-color: #f7f7f7;
+            border-bottom: 1px solid #dddfe2;
+            color: #606770;
+        }
+
+        #html-input {
+            flex-grow: 1;
+            border: none;
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none; /* リサイズハンドルを非表示 */
+            outline: none; /* フォーカス時の枠線を非表示 */
+        }
+
+        #preview-frame {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white; /* iframeの背景色を白に */
+        }
+
+        #download-btn {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #download-btn:hover {
+            background-color: #0b5ed7;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>HTML プレビュー＆ダウンローダー</h1>
+        <button id="download-btn">HTMLをダウンロード</button>
+    </header>
+
+    <main>
+        <div class="editor-container">
+            <h2>HTMLコードを入力</h2>
+            <textarea id="html-input" placeholder="ここにHTMLコードを貼り付けてください..."></textarea>
+        </div>
+        <div class="preview-container">
+            <h2>プレビュー</h2>
+            <iframe id="preview-frame" title="HTML Preview"></iframe>
+        </div>
+    </main>
+
+    <script>
+        // DOM（HTML構造）の読み込みが完了してから、中の処理を実行する
+        document.addEventListener('DOMContentLoaded', function() {
+        
+            // 必要な要素を取得
+            const htmlInput = document.getElementById('html-input');
+            const previewFrame = document.getElementById('preview-frame');
+            const downloadBtn = document.getElementById('download-btn');
+
+            // プレビューを更新する関数
+            function updatePreview() {
+                const htmlCode = htmlInput.value;
+                const previewDocument = previewFrame.contentWindow.document;
+                previewDocument.open();
+                previewDocument.write(htmlCode);
+                previewDocument.close();
+            }
+
+            // 1. プレビュー機能
+            // テキストエリアの入力が変更されるたびにプレビューを更新する
+            htmlInput.addEventListener('input', updatePreview);
+            
+            // 初期表示用に、空の状態で一度呼び出す
+            updatePreview();
+
+            // 2. ダウンロード機能
+            // ダウンロードボタンがクリックされたときの処理
+            downloadBtn.addEventListener('click', () => {
+                // テキストエリアの現在の内容を取得
+                const htmlCode = htmlInput.value;
+                
+                // 入力がない場合は何もしない
+                if (!htmlCode.trim()) {
+                    alert('ダウンロードするHTMLコードがありません。');
+                    return;
+                }
+
+                // Blobオブジェクトを作成して、HTMLコードを格納
+                const blob = new Blob([htmlCode], { type: 'text/html' });
+
+                // ダウンロード用のリンクを一時的に作成
+                const link = document.createElement('a');
+                
+                // BlobからURLを生成
+                link.href = URL.createObjectURL(blob);
+                
+                // ダウンロードするファイル名を設定
+                link.download = 'download.html';
+                
+                // リンクをクリックしてダウンロードを実行（画面には表示されない）
+                link.click();
+                
+                // 生成したURLを解放してメモリリークを防ぐ
+                URL.revokeObjectURL(link.href);
+            });
+
+        }); // DOMContentLoaded の終わり
+    </script>
+
+</body>
+</html>
